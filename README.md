@@ -18,6 +18,13 @@ Features:
 
 This app right now offers (1) Descriptive data analysis, (2) Predictive Data Analysis, (3) Exploratory Data Analysis. Few statistical techniques with very few methods were implemented. More features are expected to be implemented in future. 
 
+Video Demonstrations:
+
+1. Introduction: https://www.youtube.com/watch?v=8QoOXW6fTog
+2. Descriptive Analytics: https://www.youtube.com/watch?v=uNF0CMTc7Xs
+3. Predictive Analytics: https://www.youtube.com/watch?v=-a-8M0l7P_8
+4. Exploratory Data Analytics: https://www.youtube.com/watch?v=-a-8M0l7P_8
+
 Contact:
 
 kamakshaiah.m@gmail.com
