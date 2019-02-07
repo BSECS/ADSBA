@@ -9,7 +9,7 @@ Installation:
 
 1. Download the adsba.R code
 2. Open RStudio (https://www.rstudio.com/)
-3. Open the file (adsba.R) from teh File -> New File -> R Script (Cntl + Shift + N) in RStudio. Save the file (if not done earlier)
+3. Open the file (adsba.R) from the File -> New File -> R Script (Cntl + Shift + N) in RStudio. Save the file (if not done earlier)
 4. Press "Run App" Button at the top right corner of the R Script Window. 
 
 Bingo! You got the RStudio browser opened for you. If you don't like the RStudio browser; Press "Open in Browswer" option at left top corner of the Window (RStudio Browswer) to open it in default browser in your OS.
