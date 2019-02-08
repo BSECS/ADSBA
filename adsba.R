@@ -4,6 +4,10 @@ library(nortest)
 library(mvnormtest)
 library(MASS)
 library(cluster)
+library(psych)
+library(tseries)
+library(TTR)
+# library(forecast) for forecasting time series data
 
 # PREAMBLE begins
 # READ (FOR REPORTS) https://shiny.rstudio.com/articles/generating-reports.html
@@ -12,17 +16,32 @@ library(cluster)
 
 ui <- fluidPage(
   
-  navbarPage(title = "ADSBA",
+  # tags$head(tags$style(HTML("
+  #       .selectize-input, .selectize-dropdown {
+  #         font-size: 75%;
+  #       }
+  #       "))),
+  
+  navbarPage(title = "Advanced Data Systems for Business Analytics",
              tabPanel("DataSets", 
                       sidebarLayout(
                         sidebarPanel(
                           fileInput("file1", "Choose CSV File", accept=c('text/csv', 'text/comma-separated-values', 'text/plain', '.csv')),
-                          radioButtons("indata", "Choice:", choices = c("full", "cols")),
+                          radioButtons("indata", "Choice:", choices = c("Full", "Columns")),
                           selectInput("cols", "Choose the variable", choices = "", selected = " ", multiple = TRUE), 
-                          downloadButton('report')
+                          downloadButton('downloaddatset', "Download"),
+                          hr(),
+                          radioButtons("trans1", "Transformation:", choices = c("Not-Required", "log", "inverselog", "exponential", "lognormal", "standardize")),
+                          hr(),
+                          radioButtons("trans2", "Transformation:", choices = c("Trignometric", "Mathematical")),
+                          textInput("trigno", "Write Trig. Function"),
+                          textInput("mathtrans", "Math Trans.", placeholder = "Fourier or Laplace"), 
+                          hr()
                           ), 
+                        
                         mainPanel(tableOutput("tab1"))
                         )
+                      
              ), 
              
              navbarMenu("Descriptive Data Analysis",
@@ -34,7 +53,7 @@ ui <- fluidPage(
                             ), 
                             mainPanel(
                               fluidRow(
-                                p("Summary Statistics"),
+                                h3("Summary Statistics"),
                                 div(
                                   verbatimTextOutput("summar")
                                 )
@@ -50,7 +69,7 @@ ui <- fluidPage(
                             ), 
                             mainPanel(
                               fluidRow(
-                                p("Frequency Tables"),
+                                h3("Frequency Tables"),
                                 div(
                                   verbatimTextOutput("freq_tables")
                                 )
@@ -89,6 +108,7 @@ ui <- fluidPage(
                                      textInput("title", "Write Title For the Graph")
                                    ), 
                                    mainPanel(
+                                     h3("Plots"),
                                      fluidRow(
                                        plotOutput("plot")
                                        )
@@ -105,7 +125,7 @@ ui <- fluidPage(
                                    sidebarPanel(
                                      selectInput("cols7", "Choose Varibale 1:", choices = "", selected = " ", multiple = TRUE),
                                      selectInput("cols8", "Choose Varibale 2:", choices = "", selected = " ", multiple = TRUE),
-                                     radioButtons("normaltest", "Select Method:", choices = c("A-DTest", "Shapiro", "KS", "MV-Shapiro")),
+                                     radioButtons("normaltest", "Select Method:", choices = c("A-D-Test", "Shapiro", "KS-Test", "MV-Shapiro")),
                                      hr(),
                                      helpText("For more details visit:"),
                                      a(href="https://en.wikipedia.org/wiki/Anderson%E2%80%93Darling_test", "Anderson–Darling test"), br(),
@@ -115,6 +135,7 @@ ui <- fluidPage(
                                      hr()
                                    ), 
                                    mainPanel(
+                                     h3("Statistical Tests"),
                                      fluidRow(
                                       div(
                                         plotOutput("qqp")
@@ -160,6 +181,7 @@ ui <- fluidPage(
                                      hr()
                                    ), 
                                    mainPanel(
+                                     h3("Regression & ANOVA"),
                                      fluidRow(
                                        div(
                                          verbatimTextOutput("regout")
@@ -188,6 +210,7 @@ ui <- fluidPage(
                                      hr()
                                    ), 
                                    mainPanel(
+                                     h3("MANOVA"),
                                      fluidRow(
                                        div(
                                          verbatimTextOutput("manovaout")
@@ -200,6 +223,41 @@ ui <- fluidPage(
                                    
                                  )
                                  
+                        ), 
+                        
+                        tabPanel("Forecasting",
+                                 # http://r-statistics.co/Time-Series-Analysis-With-R.html
+                                 sidebarLayout(
+                                   sidebarPanel(
+                                     
+                                     selectInput("forcvar", "Select Variables:", choices = "", selected = "", multiple = TRUE),
+                                     radioButtons("forctasks", "Select Task:", choices = c("Description", "Convert", "Make-Stationary", "Decompose", "De-trend", "De-Seasonalize", "ACF", "PACF", "Predict")),
+                                     # textInput("fre", "Frequency:"),
+                                     numericInput("forclag", "Lag:", 1),
+                                     numericInput("forcdiff", "Diff:", 1),
+                                     fileInput("preddata", "Upload New Data for Prediction:", accept=c('text/csv', 'text/comma-separated-values', 'text/plain', '.csv')),
+                                     textInput("additvsmult", "Type", placeholder = "write 'additive' or 'mult'"),
+                                     radioButtons("forcanal", "Choose Method:", choices = c("Moving-Averages", "Exponential(HW)")),
+                                     radioButtons("forcplottype", "Select Plot:", choices = c("No-Plot", "TS", "ACF", "PACF")),
+                                     radioButtons("forctests", "Tests:", choices = c("No-Tests", "ADF", "KPSS"))
+                                   ), 
+                                   mainPanel(
+                                     h3("Forecating"),
+                                     fluidRow(
+                                       
+                                       div(
+                                         verbatimTextOutput("tsconvert")
+                                       ),
+                                       div(
+                                         verbatimTextOutput("forcoutput")
+                                       ),
+                                       div(
+                                         plotOutput("forcplot")
+                                       )
+                                     )
+                                   )
+                                 )
+                          
                         )
                         
              ),         
@@ -218,6 +276,7 @@ ui <- fluidPage(
                             hr()
                           ),
                           mainPanel(
+                            h3("Discriminant Analysis"),
                             fluidRow(
                               div(
                                 verbatimTextOutput("daoutput")
@@ -241,6 +300,7 @@ ui <- fluidPage(
                                 hr()
                                 ),
                               mainPanel(
+                                h3("Reliability Analysis"),
                                 div(
                                   verbatimTextOutput("reloutput")
                                 )
@@ -260,6 +320,7 @@ ui <- fluidPage(
                                    hr()
                                  ),
                                  mainPanel(
+                                   h3("Factor Analysis"),
                                    div(
                                      verbatimTextOutput("faoutput")
                                    ), 
@@ -283,6 +344,7 @@ ui <- fluidPage(
                                    hr()
                                  ),
                                  mainPanel(
+                                   h3("Cluster Analysis"),
                                    div(
                                      verbatimTextOutput("caoutput")
                                    ), 
@@ -325,26 +387,80 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$file1,{
-    updateSelectInput(session,
-                        inputId = "cols",
-                        choices = names(data_input()))
+    updateSelectInput(session, inputId = "cols", choices = names(data_input()))
     }
   )
   
+  logno <- reactive({
+    df <- data_input()
+    x <- matrix(NA, length(df[, input$cols]), length(df[, input$cols][[1]]))
+    for(i in 1:length(df[, input$cols])){
+      for(j in 1:length(df[, input$cols][[1]])){
+        x[i, j] <- dlnorm(df[, input$cols][[i]][j]) 
+      }
+    }
+    return(t(x))
+  })
+  
+  standout <- reactive({
+    df <- data_input()
+    
+    x <- matrix(NA, length(df[, input$cols]), length(df[, input$cols][[1]]))
+    
+    if(!is.list(df[, input$cols])){
+      df[, input$cols] <- list(df[, input$cols])
+    }
+    
+    for(i in 1:length(df[, input$cols])){
+      
+      for(j in 1:length(df[, input$cols][[1]])){
+        x[i, j] <- df[, input$cols][[i]][j]-mean(df[, input$cols][[i]])/sd(df[, input$cols][[i]])
+      }
+    }
+    return(t(x))
+    
+    })
   
  output$tab1 <- renderTable(
    {
      df <- data_input()
-     if (input$indata == "full"){
+     
+     if (input$indata == "Full"){
        print(df)
-     } else {
-       print(df[input$cols])
+     } else if(input$trans1 == "Not-Required"){
+       data <- df[, input$cols]
+       print(data)
+     } else if(input$trans1 == "log"){
+       data <- log(df[input$cols])
+       print(data)
+     } else if(input$trans1 == "inverselog"){
+       data <- 1/log(df[input$cols])
+       print(data)
+     } else if(input$trans1 == "exponential"){
+       data <- exp(df[input$cols])
+       print(data)
+     } else if(input$trans1 == "lognormal"){
+       logno()
+     } else if(input$trans1 == "standardize"){
+       standout()
      }
      
-    }
+   }
  )
 
-# summary tab
+ 
+ output$downloaddatset <- downloadHandler(
+   
+   filename <- function(){
+     paste("data-", Sys.Date(), ".csv", sep = "")
+   },
+   
+   content <- function(file){
+     df <- data_input()
+     write.csv(df[, input$cols], file, row.names = TRUE)
+   }
+   
+ )
  
  observeEvent(input$file1, {
    updateSelectInput(session, inputId = "cols1", choices = names(data_input()))
@@ -466,11 +582,11 @@ cross <- reactive({
  
  output$normtest <- renderPrint({
    
-   if(input$normaltest == "A-DTest"){
+   if(input$normaltest == "A-D-Test"){
        print(adt())
    } else if(input$normaltest == "Shapiro"){
      print(sht())
-   } else if(input$normaltest == "KS"){
+   } else if(input$normaltest == "KS-Test"){
      print(kst())
    } else if(input$normaltest == "MV-Shapiro"){
      print(mvst())
@@ -574,8 +690,132 @@ output$manovaplot <- renderPlot({
   var2 <- df[, input$cols14]
   plot(data.frame(var1, var2))
 }) 
+
+# Forecasting
+
+observeEvent(input$file1, {
+  updateSelectInput(session, inputId = "forcvar", choices = names(data_input()))
+  }
+)
+
+# tsconver <- reactive({
+#   df <- data_input()
+#   # out <- ts(df[, input$forcvar], frequency = input$freq, start = c(input$startyr, input$startmonth))
+#   out <- ts(df[, input$forcvar]) # , freq = input$freq, start = c(input$startyr, input$startmonth))
+#   return(out)
+# })
  
- 
+# output$tsconvert <- renderPrint({
+#   tsconver()
+# })
+
+tstasks <- reactive({
+  df <- data_input()
+  
+  if (input$forctasks == "Convert"){
+    out <- ts(df[, input$forcvar]) # , freq = input$freq, start = c(input$startyr, input$startmonth))
+    return(out)
+  } else if(input$forctasks == "Make-Stationary"){
+    dif <- diff(df[, input$forcvar], input$forclag, input$forcdiff)
+    return(dif)
+  } else if (input$forctasks == "Decompose"){
+    out <- decompose(ts(df[, input$forcvar], frequency = 4, start = 1), type = input$additvsmult)
+    return(out)
+  } else if (input$forctasks == "De-trend"){
+    dtmodel <- lm(df[, input$forcvar] ~ c(1:length(df[, input$forcvar])))
+    out <- resid(dtmodel)
+    return(out)
+  } else if(input$forctasks == "De-Seasonalize"){
+    ddc <- decompose(ts(df[, input$forcvar], frequency = 4, start = 1), type = input$additvsmult)
+    out <- df[, input$forcvar]-unlist(ddc["seasonal"])
+    return(as.data.frame(out)$out)
+  } else if(input$forctests == "ADF"){
+    out <- adf.test(ts(df[, input$forcvar], frequency = 4, start = 1))
+    return(out)
+  } else if(input$forctests == "KPSS"){
+    out <- kpss.test(ts(df[, input$forcvar], frequency = 4, start = 1))
+    return(out)
+  } else if(input$forctasks == "ACF"){
+    out <- acf(ts(df[, input$forcvar]))
+    return(out)
+  } else if(input$forctasks == "PACF"){
+    out <- pacf(ts(df[, input$forcvar]))
+    return(out)
+  } else if(input$forcanal == "Moving-Averages"){
+    out <- SMA(ts(df[, input$forcvar]))
+    return(out)
+  } else if(input$forcanal == "Exponential(HW)"){
+    out <- HoltWinters(ts(df[, input$forcvar], frequency = 4, start = 1))
+    return(out)
+  }
+})
+
+desctext <- reactive({
+  cat("Welcome to Forecasting; Following is the very little documentation on methods", "\n", "Convert: Converts given data variable into a time series data.",
+            "\n", "Make-Stationary: Makes time series into stationary; requires inputs viz. Lag, Diff.",
+            "\n", "Decompose: Decomposes data set into three components viz. trend, seasonal, random; methods - 'additive' or 'mult'.",
+            "\n", "Detrend: Eleminates Trend component.",
+            "\n", "Deseasonlize: Eleminates Seasonal component.",
+            "\n", "ACF: Autocorrelation Function.",
+            "\n", "PACF: Partial Autocorrelation Function.",
+            "\n", "Predict: Not implemented Yet.",
+            "\n", "Moving Averages: Computes moving average default number is 1.",
+            "\n", "Exponential(HW): Computes Holt-Winter estimates.")
+  
+})
+
+output$forcoutput <- renderPrint({
+  
+  if (input$forctasks == "Description"){
+    desctext()
+  } else if(input$forctasks == "Convert"){
+    tstasks()
+  } else if(input$forctasks == "De-trend"){
+    list(head(tstasks()), "Only first 6 records are displayed")
+  } else if(input$forctasks == "Make-Stationary"){
+    return(tstasks())
+  } else if(input$forctasks == "Decompose"){
+      tstasks()
+  } else if(input$forctasks == "De-Seasonalize"){
+    print(list(info = "Only First Few Records are Printed", head(tstasks())))
+  } else if(input$forctests == "ADF"){
+      tstasks()
+  } else if(input$forctests == "KPSS"){
+    tstasks()
+  } else if(input$forctasks == "ACF"){
+    tstasks()$acf
+  } else if(input$forctasks == "PACF"){
+    tstasks()$acf
+  } else if(input$forcanal == "Moving-Averages"){
+    tstasks()
+  } else if(input$forcanal == "Exponential(HW)"){
+    tstasks()
+  }
+  }
+  
+)
+
+output$forcplot <- renderPlot({
+  # df <- data_input()
+  if (input$forctasks == "De-trend" & input$forcplottype == "TS"){
+    plot(tstasks(), type = "b", col = "red")
+  } else if (input$forctasks == "Make-Stationary" & input$forcplottype == "TS"){
+    plot(tstasks(), type = "b", col = "red", lwd = 1.75)
+  } else if (input$forctasks == "Decompose" & input$forcplottype == "TS"){
+    plot(tstasks(), type = "b", col = "red", lwd = 1.75)
+  } else if(input$forctasks == "De-Seasonalize" & input$forcplottype == "TS"){
+    plot(tstasks(), type ="b", col = "red", lwd = 1.75)
+  } else if (input$forctasks == "Convert" & input$forcplottype == "TS"){
+    plot(tstasks(), type = "b", col = "red", lwd = 1.75)
+  } else if(input$forctasks == "ACF" & input$forcplottype == "ACF"){
+    plot(tstasks())
+  } else if(input$forctasks == "PACF" & input$forcplottype == "PACF"){
+    plot(tstasks())
+  } else if(input$forcanal == "Moving-Averages" & input$forcplottype == "TS"){
+    plot(tstasks())
+  } 
+})
+
 # Exploratory 
  # Disctiminant Analysi s
  
