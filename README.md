@@ -26,6 +26,7 @@ Video Demonstrations:
 2. Descriptive Analytics: https://www.youtube.com/watch?v=uNF0CMTc7Xs
 3. Predictive Analytics: https://www.youtube.com/watch?v=-a-8M0l7P_8
 4. Exploratory Data Analytics: https://www.youtube.com/watch?v=W5t0D3Tb3xc
+5. Forecasting: https://www.youtube.com/watch?v=cduOCf9YaRw&feature=youtu.be
 
 Contact:
 
