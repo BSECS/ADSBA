@@ -29,15 +29,15 @@ Video Demonstrations:
 5. Forecasting: https://www.youtube.com/watch?v=cduOCf9YaRw&feature=youtu.be
 
 Dependencies (R Packages):
-shiny
-shinydashboard
-tseries
-psych
-MASS
-mvnormtest
-nortest
-cluster
-TTR
+shiny,
+shinydashboard,
+tseries,
+psych,
+MASS,
+mvnormtest,
+nortest,
+cluster,
+TTR,
 
 Contact:
 
