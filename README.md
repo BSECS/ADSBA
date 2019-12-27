@@ -41,6 +41,6 @@ TTR,
 
 Contact:
 
-kamakshaiah.m@gmail.com
+contact@bse-cs.com
 +919177573730
 +919848396972
